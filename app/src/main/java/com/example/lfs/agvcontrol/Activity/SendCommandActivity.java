@@ -32,6 +32,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -221,7 +226,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     Intent bindIntent=new Intent(SendCommandActivity.this,MyService.class);
                     //绑定服务
                     bindService(bindIntent,connection,BIND_AUTO_CREATE);
-
+                    testSql();
                 } else { //关店申请
                     showToast("关闭连接");
                     Intent stopService=new Intent(SendCommandActivity.this,MyService.class);
@@ -274,4 +279,39 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     }
                 }).show();
     }
+    public void testSql()
+    {
+        //在android中操作数据库最好在子线程中执行，否则可能会报异常
+        new Thread()
+        {
+            public void run() {
+                try {
+                    //注册驱动
+                    Class.forName("com.mysql.jdbc.Driver");
+                    String url = "jdbc:mysql://10.24.4.63:3306/agvsystem";
+                    Connection conn = DriverManager.getConnection(url, "root", "19940829");
+                    Statement stmt = conn.createStatement();
+                    String sql = "select * from point";
+                    ResultSet rs = stmt.executeQuery(sql);
+
+                    while (rs.next()) {
+                        Log.e("yzy", "field1-->"+rs.getString(1)+"  field2-->"+rs.getString(2));
+                    }
+
+                    rs.close();
+                    stmt.close();
+                    conn.close();
+                    Log.e("yzy", "success to connect!");
+                }catch(ClassNotFoundException e)
+                {
+                    Log.e("yzy", "fail to connect!"+"  "+e.getMessage());
+                } catch (SQLException e)
+                {
+                    Log.e("yzy", "fail to connect!"+"  "+e.getMessage());
+                }
+            };
+        }.start();
+
+    }
+
 }
