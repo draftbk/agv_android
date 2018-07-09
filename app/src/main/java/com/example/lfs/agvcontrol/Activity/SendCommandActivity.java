@@ -27,6 +27,7 @@ import com.example.lfs.agvcontrol.Application.MyApplication;
 import com.example.lfs.agvcontrol.Model.MapPoint;
 import com.example.lfs.agvcontrol.R;
 import com.example.lfs.agvcontrol.Service.MyService;
+import com.example.lfs.agvcontrol.Utils.Utils;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -38,6 +39,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,11 +48,11 @@ import java.util.concurrent.Executors;
 public class SendCommandActivity extends AppCompatActivity implements View.OnClickListener {
     private DataOutputStream writer;
     private Button sendButton,cancelButton;
-    private TextView textStartPoint,textEndPoint,textPriority;
-    private List<MapPoint> pointList;
-    private EditText  textRemark;
+    private TextView textStartPoint,textEndPoint,textStartPointType,textEndPointType,textPriority;
+    private List<MapPoint> pointList,tempStartPointList,tempEndPointList;
+    private HashSet<Integer> pointTypeSet;
+    private EditText  textContent,textRemark;
     private String startPoint,endPoint,priority,remark;
-
     private Handler handler;
     private MyService.MySocketBinder mySocketBinder;
     private ServiceConnection connection;
@@ -79,13 +82,18 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
         sendButton=findViewById(R.id.button_send);
         cancelButton=findViewById(R.id.button_cancel);
         textStartPoint=findViewById(R.id.text_start_point);
+        textStartPointType=findViewById(R.id.text_start_point_type);
+        textEndPointType=findViewById(R.id.text_end_point_type);
         textEndPoint=findViewById(R.id.text_end_point);
         textPriority=findViewById(R.id.text_priority);
+        textContent=findViewById(R.id.text_content);
         textRemark=findViewById(R.id.text_remark);
         sendButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
         textStartPoint.setOnClickListener(this);
         textEndPoint.setOnClickListener(this);
+        textStartPointType.setOnClickListener(this);
+        textEndPointType.setOnClickListener(this);
         textPriority.setOnClickListener(this);
         initList();
         // 初始化handler
@@ -100,25 +108,28 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
 
     private void initList() {
         pointList=new ArrayList<MapPoint>();
-        pointList.add(new MapPoint(0,0,"1号充电位"));
-        pointList.add(new MapPoint(2,1,"1号工位"));
-        pointList.add(new MapPoint(3,1,"1号工位"));
-//        pointList.add(new MapPoint(53,0,"2号充电位"));
-//        pointList.add(new MapPoint(40,0,"3号充电位"));
-//        pointList.add(new MapPoint(8,3,"1号仓库"));
-//        pointList.add(new MapPoint(11,1,"1号工位"));
-//        pointList.add(new MapPoint(20,1,"2号工位"));
-//        pointList.add(new MapPoint(29,1,"3号工位"));
-//        pointList.add(new MapPoint(32,4,"1号成品库"));
+        pointTypeSet=new HashSet<Integer>();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.text_start_point:
-                String[] startItems = new String[pointList.size()];
-                for(int i=0;i<pointList.size();i++){
-                    startItems[i]=pointList.get(i).getName()+"(编号："+pointList.get(i).getId()+")";
+                if (pointList.size()==0){
+                    showToast("请先连接再选择");
+                    break;
+                }
+                tempStartPointList=new ArrayList<MapPoint>();
+                for (int i=0;i<pointList.size();i++){
+                    if (textStartPointType.getText().toString().equals("")||textStartPointType.getText().toString().equals("全部")){
+                        tempStartPointList.add(pointList.get(i));
+                    } else if (pointList.get(i).getType()==Integer.parseInt(textStartPointType.getText().toString())) {
+                        tempStartPointList.add(pointList.get(i));
+                    }
+                }
+                String[] startItems = new String[tempStartPointList.size()];
+                for(int i=0;i<tempStartPointList.size();i++){
+                    startItems[i] = tempStartPointList.get(i).getName();
                 }
                 final String[] finalStartItems = startItems;
                 AlertDialog startDialog = new AlertDialog.Builder(this).setTitle("选择出发点")
@@ -127,15 +138,27 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                             public void onClick(DialogInterface dialog, int which) {
                                 Toast.makeText(SendCommandActivity.this, finalStartItems[which], Toast.LENGTH_SHORT).show();
                                 textStartPoint.setText(finalStartItems[which]);
-                                startPoint=pointList.get(which).getId()+"";
+                                startPoint=tempStartPointList.get(which).getId()+"";
                             }
                         }).create();
                 startDialog.show();
                 break;
             case R.id.text_end_point:
-                String[] endItems = new String[pointList.size()];
-                for(int i=0;i<pointList.size();i++){
-                    endItems[i]=pointList.get(i).getName()+"(编号："+pointList.get(i).getId()+")";
+                if (pointList.size()==0){
+                    showToast("请先连接再选择");
+                    break;
+                }
+                tempEndPointList=new ArrayList<MapPoint>();
+                for (int i=0;i<pointList.size();i++){
+                    if (textEndPointType.getText().toString().equals("")||textEndPointType.getText().toString().equals("全部")){
+                        tempEndPointList.add(pointList.get(i));
+                    }  else if (pointList.get(i).getType()==Integer.parseInt(textEndPointType.getText().toString())) {
+                        tempEndPointList.add(pointList.get(i));
+                    }
+                }
+                String[] endItems = new String[tempEndPointList.size()];
+                for(int i=0;i<tempEndPointList.size();i++){
+                    endItems[i] = tempEndPointList.get(i).getName();
                 }
                 final String[] finalEndItems = endItems;
                 AlertDialog endDialog = new AlertDialog.Builder(this).setTitle("选择目标点")
@@ -144,10 +167,58 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                             public void onClick(DialogInterface dialog, int which) {
                                 Toast.makeText(SendCommandActivity.this, finalEndItems[which], Toast.LENGTH_SHORT).show();
                                 textEndPoint.setText(finalEndItems[which]);
-                                endPoint=pointList.get(which).getId()+"";
+                                endPoint=tempEndPointList.get(which).getId()+"";
                             }
                         }).create();
                 endDialog.show();
+                break;
+            case R.id.text_start_point_type:
+                if (pointTypeSet.size()==0){
+                    showToast("请先连接再选择");
+                    break;
+                }
+                String[] startTypeItems = new String[pointTypeSet.size()+1];
+                startTypeItems[0]="全部";
+                int i_start_type=1;
+                for(Iterator it = pointTypeSet.iterator(); it.hasNext();)
+                {
+                    startTypeItems[i_start_type]=it.next().toString();
+                    i_start_type++;
+                }
+                final String[] finalStartTypeItems = startTypeItems;
+                AlertDialog startTypeDialog = new AlertDialog.Builder(this).setTitle("选择出发点类型")
+                        .setItems(finalStartTypeItems, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast.makeText(SendCommandActivity.this, finalStartTypeItems[which], Toast.LENGTH_SHORT).show();
+                                textStartPointType.setText(finalStartTypeItems[which]);
+                            }
+                        }).create();
+                startTypeDialog.show();
+                break;
+            case R.id.text_end_point_type:
+                if (pointTypeSet.size()==0){
+                    showToast("请先连接再选择");
+                    break;
+                }
+                String[] endTypeItems = new String[pointTypeSet.size()+1];
+                endTypeItems[0]="全部";
+                int i_end_type=1;
+                for(Iterator it = pointTypeSet.iterator(); it.hasNext();)
+                {
+                    endTypeItems[i_end_type]=it.next().toString();
+                    i_end_type++;
+                }
+                final String[] finalEndTypeItems = endTypeItems;
+                AlertDialog endTypeDialog = new AlertDialog.Builder(this).setTitle("选择目标点类型")
+                        .setItems(finalEndTypeItems, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast.makeText(SendCommandActivity.this, finalEndTypeItems[which], Toast.LENGTH_SHORT).show();
+                                textEndPointType.setText(finalEndTypeItems[which]);
+                            }
+                        }).create();
+                endTypeDialog.show();
                 break;
             case R.id.text_priority:
                 final String[] priorityItems ={"1","2","3"};
@@ -162,25 +233,20 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 priorityDialog.show();
                 break;
             case R.id.button_send:
-                if(blankIsEmpty()){
-                    showToast("请完整填写信息");
-                    break;
+                if (Utils.isFastClick()) {
+                    // 进行点击事件后的逻辑操作
+                    if(blankIsEmpty()){
+                        showToast("请完整填写信息");
+                        break;
+                    }
+                    if(checkStartEqualEnd()){
+                        showToast("起点终点不能是同一个点");
+                        break;
+                    }
+                    showNormalDialog();
+                }else {
+                    showToast("发送间隔为"+Utils.getMinClickDelayTime()+"请不要发送过于频繁");
                 }
-                if(checkStartEqualEnd()){
-                    showToast("起点终点不能是同一个点");
-                    break;
-                }
-
-                try {
-                    String message="s10000"+","+startPoint+","+endPoint+","
-                            +textPriority.getText().toString()+","+textRemark.getText().toString();
-                    message=new String(message.getBytes("UTF-8"));
-                    showToast(mySocketBinder.sendMessage(message));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-
                 break;
             case R.id.button_cancel:
                 finish();
@@ -190,7 +256,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
 
     private boolean blankIsEmpty() {
         if (textStartPoint.getText().toString().equals("")||textEndPoint.getText().toString().equals("")
-                ||textPriority.getText().toString().equals("")||textRemark.getText().toString().equals("")){
+                ||textPriority.getText().toString().equals("")||textContent.getText().toString().equals("")){
             return true;
         }else {
             return false;
@@ -226,7 +292,6 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     Intent bindIntent=new Intent(SendCommandActivity.this,MyService.class);
                     //绑定服务
                     bindService(bindIntent,connection,BIND_AUTO_CREATE);
-                    testSql();
                 } else { //关店申请
                     showToast("关闭连接");
                     Intent stopService=new Intent(SendCommandActivity.this,MyService.class);
@@ -244,15 +309,27 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()){
             case R.id.menu_connect:
                 showInputDialog();
                 break;
+            case R.id.menu_testSql:
+                testSql();
+                break;
+            case R.id.menu_testCircleSend:
+                try {
+                    String message="s10000"+","+startPoint+","+endPoint+","
+                            +textPriority.getText().toString()+","+textContent.getText().toString()+","
+                            +textRemark.getText().toString();
+                    message=new String(message.getBytes("UTF-8"));
+                    showToast(mySocketBinder.sendMessage(message));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                break;
             default:
                 break;
         }
-
         return true;
     }
 
@@ -260,6 +337,43 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     protected void onDestroy() {
         super.onDestroy();
     }
+
+    private void showNormalDialog(){
+        /* @setIcon 设置对话框图标
+         * @setTitle 设置对话框标题
+         * @setMessage 设置对话框消息提示
+         * setXXX方法返回Dialog对象，因此可以链式设置属性
+         */
+        final AlertDialog.Builder normalDialog =
+                new AlertDialog.Builder(SendCommandActivity.this);
+        normalDialog.setMessage("确认发送吗？");
+        normalDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //...To-do
+                        try {
+                            String message="s10000"+","+startPoint+","+endPoint+","
+                                    +textPriority.getText().toString()+","+textContent.getText().toString()+","
+                                    +textRemark.getText().toString();
+                            message=new String(message.getBytes("UTF-8"));
+                            showToast(mySocketBinder.sendMessage(message));
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        normalDialog.setNegativeButton("取消",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //...To-do
+                    }
+                });
+        // 显示
+        normalDialog.show();
+    }
+
     private void showInputDialog() {
     /*@setView 装入一个EditView
      */
@@ -275,7 +389,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                         Toast.makeText(SendCommandActivity.this,
                                 inputIP,
                                 Toast.LENGTH_SHORT).show();
-                        MyApplication.connectIP=inputIP;
+                        MyApplication.saveIp(SendCommandActivity.this,inputIP);
                     }
                 }).show();
     }
@@ -293,21 +407,25 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     Statement stmt = conn.createStatement();
                     String sql = "select * from point";
                     ResultSet rs = stmt.executeQuery(sql);
-
+                    // 更新 pointList
+                    pointList.clear();
+                    pointTypeSet.clear();
                     while (rs.next()) {
-                        Log.e("yzy", "field1-->"+rs.getString(1)+"  field2-->"+rs.getString(2));
+                        Log.e("slf", "field1-->"+rs.getInt(1)+"  field2-->"+rs.getString(2)
+                                +"  field3-->"+rs.getInt(3));
+                        pointList.add(new MapPoint(rs.getInt(1),rs.getInt(3),rs.getString(2)));
+                        pointTypeSet.add(rs.getInt(3));
                     }
-
                     rs.close();
                     stmt.close();
                     conn.close();
-                    Log.e("yzy", "success to connect!");
+                    Log.e("slf", "success to connect!");
                 }catch(ClassNotFoundException e)
                 {
-                    Log.e("yzy", "fail to connect!"+"  "+e.getMessage());
+                    Log.e("slf", "fail to connect!"+"  "+e.getMessage());
                 } catch (SQLException e)
                 {
-                    Log.e("yzy", "fail to connect!"+"  "+e.getMessage());
+                    Log.e("slf", "fail to connect!"+"  "+e.getMessage());
                 }
             };
         }.start();

@@ -3,8 +3,10 @@ package com.example.lfs.agvcontrol.Activity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
@@ -19,18 +21,25 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.lfs.agvcontrol.Application.MyApplication;
 import com.example.lfs.agvcontrol.R;
+import com.example.lfs.agvcontrol.Service.MyService;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +79,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        init();
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
@@ -96,6 +106,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+    private void init() {
+        //初始化ip
+        MyApplication.initIp(LoginActivity.this);
     }
 
     private void populateAutoComplete() {
@@ -356,6 +371,51 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+    }
+    /**
+     *创建菜单
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.login_activity_menu,menu); //通过getMenuInflater()方法得到MenuInflater对象，再调用它的inflate()方法就可以给当前活动创建菜单了，第一个参数：用于指定我们通过哪一个资源文件来创建菜单；第二个参数：用于指定我们的菜单项将添加到哪一个Menu对象当中。
+
+        return true; // true：允许创建的菜单显示出来，false：创建的菜单将无法显示。
+    }
+
+    /**
+     *菜单的点击事件
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_connect:
+                showInputDialog();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+    private void showInputDialog() {
+    /*@setView 装入一个EditView
+     */
+        final EditText editText = new EditText(LoginActivity.this);
+        editText.setText(MyApplication.connectIP);
+        AlertDialog.Builder inputDialog =
+                new AlertDialog.Builder(LoginActivity.this);
+        inputDialog.setTitle("输入对应IP地址").setView(editText);
+        inputDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String inputIP=editText.getText().toString();
+                        Toast.makeText(LoginActivity.this,
+                                inputIP,
+                                Toast.LENGTH_SHORT).show();
+                        MyApplication.saveIp(LoginActivity.this,inputIP);
+
+                    }
+                }).show();
     }
 }
 
