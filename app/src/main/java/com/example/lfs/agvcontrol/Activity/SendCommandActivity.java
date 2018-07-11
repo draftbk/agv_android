@@ -53,6 +53,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     private HashSet<Integer> pointTypeSet;
     private EditText  textContent,textRemark;
     private String startPoint,endPoint,priority,remark;
+    private Switch switchShop;
     private Handler handler;
     private MyService.MySocketBinder mySocketBinder;
     private ServiceConnection connection;
@@ -101,9 +102,12 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                showToast(msg.obj.toString());
+                if (msg.what==1){
+                    switchShop.performClick();
+                }
             }
         };
+
     }
 
     private void initList() {
@@ -280,9 +284,8 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.send_command_activity_menu,menu); //通过getMenuInflater()方法得到MenuInflater对象，再调用它的inflate()方法就可以给当前活动创建菜单了，第一个参数：用于指定我们通过哪一个资源文件来创建菜单；第二个参数：用于指定我们的菜单项将添加到哪一个Menu对象当中。
-        Switch switchShop=(Switch) menu.findItem(R.id.connect_switch).getActionView().findViewById(R.id.switchForActionBar);
+        switchShop=(Switch) menu.findItem(R.id.connect_switch).getActionView().findViewById(R.id.switchForActionBar);
         switchShop.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
             @Override
             public void onCheckedChanged(CompoundButton btn, boolean isChecked) {
                 if (isChecked) { //开店申请
@@ -301,6 +304,9 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 }
             }
         });
+        Message msg=new Message();
+        msg.what=1;
+        handler.sendMessage(msg);
         return true; // true：允许创建的菜单显示出来，false：创建的菜单将无法显示。
     }
 

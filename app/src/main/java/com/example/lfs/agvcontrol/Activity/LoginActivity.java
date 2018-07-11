@@ -15,11 +15,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,10 +39,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.lfs.agvcontrol.Application.MyApplication;
+import com.example.lfs.agvcontrol.Model.MapPoint;
 import com.example.lfs.agvcontrol.R;
 import com.example.lfs.agvcontrol.Service.MyService;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +83,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mLoginFormView;
     private String realNumber="agv123456";
     private String realPassword="123456";
+    private Handler loginHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +121,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void init() {
         //初始化ip
         MyApplication.initIp(LoginActivity.this);
+        // 初始化handler
+        loginHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what==1){
+                    Intent intent=new Intent(LoginActivity.this,SendCommandActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else if (msg.what==0){
+                    showToast("账号或密码错误，请重试");
+                }
+            }
+        };
     }
 
     private void populateAutoComplete() {
@@ -209,10 +233,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
-    }
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
@@ -271,7 +291,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 // a primary email address if the user hasn't specified one.
                 ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
     }
-
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         List<String> emails = new ArrayList<>();
@@ -321,13 +340,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
-            if (mEmail.equals(realNumber)&&mPassword.equals(realPassword)){
-                Intent intent=new Intent(LoginActivity.this,SendCommandActivity.class);
-                startActivity(intent);
-                finish();
-            }else {
-                Toast.makeText(LoginActivity.this,"账号或密码错误",Toast.LENGTH_SHORT).show();
-            }
+            loginSql(mEmail,mPassword);
         }
 
         @Override
@@ -416,6 +429,50 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                     }
                 }).show();
+    }
+    public void loginSql(final String user, final String password)
+    {
+        //在android中操作数据库最好在子线程中执行，否则可能会报异常
+        new Thread()
+        {
+            public void run() {
+                try {
+                    //注册驱动
+                    Class.forName("com.mysql.jdbc.Driver");
+                    String url = "jdbc:mysql://10.24.4.63:3306/agvsystem";
+                    Connection conn = DriverManager.getConnection(url, "root", "19940829");
+                    Statement stmt = conn.createStatement();
+                    String sql = "select * from user";
+                    ResultSet rs = stmt.executeQuery(sql);
+                    Message msg=new Message();
+                    msg.what=0;
+                    // 更新 pointList
+                    while (rs.next()) {
+                        Log.e("slf", "field1-->"+rs.getString(1)+"  field2-->"+rs.getString(2)
+                                +"  field3-->"+rs.getString(3));
+                        if (user.equals(rs.getString(1))&&password.equals(rs.getString(3))){
+                            msg.what=1;
+                            break;
+                        }
+                    }
+                    loginHandler.sendMessage(msg);
+                    rs.close();
+                    stmt.close();
+                    conn.close();
+                    Log.e("slf", "success to connect!");
+                }catch(ClassNotFoundException e)
+                {
+                    Log.e("slf", "fail to connect!"+"  "+e.getMessage());
+                } catch (SQLException e)
+                {
+                    Log.e("slf", "fail to connect!"+"  "+e.getMessage());
+                }
+            };
+        }.start();
+
+    }
+    private void showToast(String s) {
+        Toast.makeText(LoginActivity.this,s,Toast.LENGTH_SHORT).show();
     }
 }
 
