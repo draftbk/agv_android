@@ -102,8 +102,18 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                if (msg.what==1){
+                if (msg.what==0){
+                    showToast("收到信息"+msg.obj.toString());
+
+                } else if (msg.what==1){
                     switchShop.performClick();
+                }else if (msg.what==2){
+                    if (msg.obj.toString().equals("connected")){
+                        showToast("连接成功");
+                    }else if (msg.obj.toString().equals("unconnected")){
+                        showToast("连接失败，请重试");
+                        switchShop.performClick();
+                    }
                 }
             }
         };
@@ -249,7 +259,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     }
                     showNormalDialog();
                 }else {
-                    showToast("发送间隔为"+Utils.getMinClickDelayTime()+"请不要发送过于频繁");
+                    showToast("按钮点击间隔为"+Utils.getMinClickDelayTime()+"请不要点击过于频繁");
                 }
                 break;
             case R.id.button_cancel:
@@ -296,7 +306,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     //绑定服务
                     bindService(bindIntent,connection,BIND_AUTO_CREATE);
                 } else { //关店申请
-                    showToast("关闭连接");
+//                    showToast("关闭连接");
                     Intent stopService=new Intent(SendCommandActivity.this,MyService.class);
                     stopService(stopService);
                     //解绑service
@@ -317,7 +327,12 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.menu_connect:
-                showInputDialog();
+                if (switchShop.isChecked()){
+                    showToast("先断开连接再设置ip");
+                }else {
+                    showInputDialog();
+                }
+
                 break;
             case R.id.menu_testSql:
                 testSql();
@@ -384,6 +399,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     /*@setView 装入一个EditView
      */
         final EditText editText = new EditText(SendCommandActivity.this);
+        editText.setText(MyApplication.connectIP);
         AlertDialog.Builder inputDialog =
                 new AlertDialog.Builder(SendCommandActivity.this);
         inputDialog.setTitle("输入对应IP地址").setView(editText);
