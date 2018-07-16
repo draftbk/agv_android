@@ -8,19 +8,13 @@ import java.util.Date;
 
 public class Task {
     private String sendByWho;
-    private Date startDate;
+    private String startDate;
     private String content;
     private String startPoint;
     private String aimPoint;
 
-    public Task(String sendByWho, String content, String startPoint, String aimPoint) {
-        this.sendByWho = sendByWho;
-        this.content = content;
-        this.startPoint = startPoint;
-        this.aimPoint = aimPoint;
-    }
 
-    public Task(String sendByWho, Date startDate, String content, String startPoint, String aimPoint) {
+    public Task(String sendByWho, String startDate, String content, String startPoint, String aimPoint) {
         this.sendByWho = sendByWho;
         this.startDate = startDate;
         this.content = content;
@@ -36,11 +30,11 @@ public class Task {
         this.sendByWho = sendByWho;
     }
 
-    public Date getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
 

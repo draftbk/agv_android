@@ -1,17 +1,25 @@
 package com.example.lfs.agvcontrol.Dialog;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.example.lfs.agvcontrol.Activity.SendCommandActivity;
+import com.example.lfs.agvcontrol.Adapter.TaskAdapter;
 import com.example.lfs.agvcontrol.Model.Task;
 import com.example.lfs.agvcontrol.R;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 /**
@@ -37,11 +45,16 @@ public class TaskListDialog extends Dialog {
     }
 
     private void initListView() {
-        ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<>(mContext, android.R.layout.simple_expandable_list_item_1);
-        for (int i = 0; i < taskList.size(); i++) {
-            stringArrayAdapter.add(taskList.get(i).getContent());
-        }
-        mListView.setAdapter(stringArrayAdapter);
+        TaskAdapter adapter = new TaskAdapter(getContext(), R.layout.task_item, taskList);
+        mListView.setAdapter(adapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                showNormalDialog();
+            }
+        });
+
     }
 
     @Override
@@ -62,7 +75,38 @@ public class TaskListDialog extends Dialog {
         window.setAttributes(attributes);
     }
 
+    private void showNormalDialog(){
+        /* @setIcon 设置对话框图标
+         * @setTitle 设置对话框标题
+         * @setMessage 设置对话框消息提示
+         * setXXX方法返回Dialog对象，因此可以链式设置属性
+         */
+        final AlertDialog.Builder normalDialog =
+                new AlertDialog.Builder(getContext());
+        normalDialog.setMessage("确认撤销吗？");
+        normalDialog.setPositiveButton("确定",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //...To-do
+                        showToast("撤销中");
+                        // 关闭本dialog
+                        dismiss();
+                    }
+                });
+        normalDialog.setNegativeButton("取消",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //...To-do
+                    }
+                });
+        // 显示
+        normalDialog.show();
+    }
 
-
+    private void showToast(String s) {
+        Toast.makeText(getContext(),s,Toast.LENGTH_SHORT).show();
+    }
 
 }

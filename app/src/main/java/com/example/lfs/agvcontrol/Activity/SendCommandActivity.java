@@ -41,6 +41,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -343,7 +344,9 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 testSql();
                 break;
             case R.id.menu_task_list:
-                taskList.add(new Task("111","123","1","2"));
+                Date date=new Date();
+                String dateStr=String.format("%tT%n",date);
+                taskList.add(new Task("N123456",dateStr,"小心点","1号工位","2号工位"));
                 taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList);
                 taskListDialog.show();
                 break;
