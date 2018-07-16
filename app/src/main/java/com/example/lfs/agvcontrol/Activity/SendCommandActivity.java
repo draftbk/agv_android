@@ -24,7 +24,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.lfs.agvcontrol.Application.MyApplication;
+import com.example.lfs.agvcontrol.Dialog.TaskListDialog;
 import com.example.lfs.agvcontrol.Model.MapPoint;
+import com.example.lfs.agvcontrol.Model.Task;
 import com.example.lfs.agvcontrol.R;
 import com.example.lfs.agvcontrol.Service.MyService;
 import com.example.lfs.agvcontrol.Utils.Utils;
@@ -57,6 +59,8 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     private Handler handler;
     private MyService.MySocketBinder mySocketBinder;
     private ServiceConnection connection;
+    private TaskListDialog taskListDialog;
+    private ArrayList<Task> taskList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,6 +127,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     private void initList() {
         pointList=new ArrayList<MapPoint>();
         pointTypeSet=new HashSet<Integer>();
+        taskList=new ArrayList<Task>();
     }
 
     @Override
@@ -337,16 +342,10 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
             case R.id.menu_testSql:
                 testSql();
                 break;
-            case R.id.menu_testCircleSend:
-                try {
-                    String message="s10000"+","+startPoint+","+endPoint+","
-                            +textPriority.getText().toString()+","+textContent.getText().toString()+","
-                            +textRemark.getText().toString();
-                    message=new String(message.getBytes("UTF-8"));
-                    showToast(mySocketBinder.sendMessage(message));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+            case R.id.menu_task_list:
+                taskList.add(new Task("111","123","1","2"));
+                taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList);
+                taskListDialog.show();
                 break;
             default:
                 break;

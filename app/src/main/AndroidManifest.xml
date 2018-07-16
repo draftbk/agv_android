@@ -24,13 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity.SendCommandActivity">
+        <activity android:name=".Activity.SendCommandActivity"></activity>
 
-        </activity>
         <service
             android:name=".Service.MyService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
     </application>
 
 </manifest>
