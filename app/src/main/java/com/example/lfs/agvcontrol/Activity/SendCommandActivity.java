@@ -375,7 +375,8 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                         //获取时间，用于组成任务id
                         Date date=new Date();
                         String dateStr=String.format("%tT%n",date);
-                        taskList.add(new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),startPoint,endPoint,MyApplication.workerId+dateStr));
+                        taskList.add(new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),textStartPoint.getText().toString()
+                                ,textEndPoint.getText().toString(),MyApplication.workerId+dateStr));
                         //...To-do
                         try {
                             String message="s10000"+","+MyApplication.workerId+dateStr+","+startPoint+","+endPoint+","

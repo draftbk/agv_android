@@ -44,7 +44,6 @@ public class TaskAdapter extends ArrayAdapter<Task> {
             viewHolder.taskContent = (TextView) view.findViewById(R.id.task_content);
             viewHolder.taskStartPoint = (TextView) view.findViewById(R.id.start_point);
             viewHolder.taskEndPoint = (TextView) view.findViewById(R.id.end_point);
-            viewHolder.taskSender = (TextView) view.findViewById(R.id.send_by_who);
             viewHolder.taskTime = (TextView) view.findViewById(R.id.send_time);
             // 将内部类对象存储到View对象中
             view.setTag(viewHolder);
@@ -55,7 +54,6 @@ public class TaskAdapter extends ArrayAdapter<Task> {
         viewHolder.taskContent.setText(task.getContent());
         viewHolder.taskStartPoint.setText(task.getStartPoint());
         viewHolder.taskEndPoint.setText(task.getAimPoint());
-        viewHolder.taskSender.setText(task.getSendByWho());
         viewHolder.taskTime.setText(task.getStartDate());
         return view;
     }
@@ -65,7 +63,6 @@ public class TaskAdapter extends ArrayAdapter<Task> {
         TextView taskContent;
         TextView taskStartPoint;
         TextView taskEndPoint;
-        TextView taskSender;
         TextView taskTime;
 
     }
