@@ -12,15 +12,25 @@ public class Task {
     private String content;
     private String startPoint;
     private String aimPoint;
+    private String taskId;
 
-
-    public Task(String sendByWho, String startDate, String content, String startPoint, String aimPoint) {
+    public Task(String sendByWho, String startDate, String content, String startPoint, String aimPoint, String taskId) {
         this.sendByWho = sendByWho;
         this.startDate = startDate;
         this.content = content;
         this.startPoint = startPoint;
         this.aimPoint = aimPoint;
+        this.taskId = taskId;
     }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
 
     public String getSendByWho() {
         return sendByWho;

@@ -3,6 +3,8 @@ package com.example.lfs.agvcontrol.Application;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 
 /**
  * Created by lfs on 2018/6/28.
@@ -10,6 +12,8 @@ import android.content.SharedPreferences;
 
 public class MyApplication extends Application{
     public static String connectIP="192.168.0.1";
+    public static String selfIP="192.168.0.1";
+    public static String workerId="000000";
 
     public static void initIp(Context context){
         //1、打开Preferences，名称为setting，如果存在则打开它，否则创建新的Preferences
@@ -37,4 +41,31 @@ public class MyApplication extends Application{
         //4、完成提交
         editor.commit();
     }
+
+    /***
+     * 使用WIFI时，获取本机IP地址
+     * @param mContext
+     * @return
+     */
+    public static void getWIFILocalIpAdress(Context mContext) {
+
+        //获取wifi服务
+        WifiManager wifiManager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+        //判断wifi是否开启
+        if (!wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(true);
+        }
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int ipAddress = wifiInfo.getIpAddress();
+        String ip = formatIpAddress(ipAddress);
+        selfIP=ip;
+    }
+    private static String formatIpAddress(int ipAdress) {
+
+        return (ipAdress & 0xFF ) + "." +
+                ((ipAdress >> 8 ) & 0xFF) + "." +
+                ((ipAdress >> 16 ) & 0xFF) + "." +
+                ( ipAdress >> 24 & 0xFF) ;
+    }
+
 }

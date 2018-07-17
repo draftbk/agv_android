@@ -1,7 +1,6 @@
 package com.example.lfs.agvcontrol.Activity;
 
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.provider.Contacts;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -306,6 +304,9 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
             public void onCheckedChanged(CompoundButton btn, boolean isChecked) {
                 if (isChecked) { //开店申请
                     showToast("打开连接");
+                    //获取当前自身IP，并存到Application里
+                    MyApplication.getWIFILocalIpAdress(SendCommandActivity.this);
+                    //页面跳转
                     Intent startService=new Intent(SendCommandActivity.this,MyService.class);
                     startService(startService);
                     Intent bindIntent=new Intent(SendCommandActivity.this,MyService.class);
@@ -341,13 +342,10 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
 
                 break;
             case R.id.menu_testSql:
-                testSql();
+                getPointFromSql();
                 break;
             case R.id.menu_task_list:
-                Date date=new Date();
-                String dateStr=String.format("%tT%n",date);
-                taskList.add(new Task("N123456",dateStr,"小心点","1号工位","2号工位"));
-                taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList);
+                taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList,mySocketBinder);
                 taskListDialog.show();
                 break;
             default:
@@ -374,11 +372,16 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //获取时间，用于组成任务id
+                        Date date=new Date();
+                        String dateStr=String.format("%tT%n",date);
+                        taskList.add(new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),startPoint,endPoint,MyApplication.workerId+dateStr));
                         //...To-do
                         try {
-                            String message="s10000"+","+startPoint+","+endPoint+","
+                            String message="s10000"+","+MyApplication.workerId+dateStr+","+startPoint+","+endPoint+","
                                     +textPriority.getText().toString()+","+textContent.getText().toString()+","
-                                    +textRemark.getText().toString();
+                                    +textRemark.getText().toString()+","
+                                    +MyApplication.workerId+","+MyApplication.selfIP;
                             message=new String(message.getBytes("UTF-8"));
                             showToast(mySocketBinder.sendMessage(message));
                         } catch (UnsupportedEncodingException e) {
@@ -417,7 +420,9 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     }
                 }).show();
     }
-    public void testSql()
+
+    //从数据库获取点信息
+    public void getPointFromSql()
     {
         //在android中操作数据库最好在子线程中执行，否则可能会报异常
         new Thread()

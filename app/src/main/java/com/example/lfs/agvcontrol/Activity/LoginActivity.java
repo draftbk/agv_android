@@ -127,6 +127,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if (msg.what==1){
                     Intent intent=new Intent(LoginActivity.this,SendCommandActivity.class);
                     startActivity(intent);
+                    MyApplication.workerId=msg.obj.toString();
                     finish();
                 } else if (msg.what==0){
                     showToast("账号或密码错误，请重试");
@@ -445,6 +446,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                 +"  field3-->"+rs.getString(3));
                         if (user.equals(rs.getString(1))&&password.equals(rs.getString(3))){
                             msg.what=1;
+                            msg.obj=rs.getString(2);
                             break;
                         }
                     }
