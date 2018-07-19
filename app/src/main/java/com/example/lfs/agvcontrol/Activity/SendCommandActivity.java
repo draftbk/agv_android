@@ -60,6 +60,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
     private ServiceConnection connection;
     private TaskListDialog taskListDialog;
     private ArrayList<Task> taskList;
+    private Task tempTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,6 +108,27 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 super.handleMessage(msg);
                 if (msg.what==0){
                     showToast("收到信息"+msg.obj.toString());
+                    String[] message=msg.obj.toString().split(",");
+                    //处理发送任务后的返回信息
+                    if (message[0].equals("s10000")){
+                        if (tempTask.getTaskId().equals(message[1])&&message[2].equals("1")){
+                            showToast("任务发送成功");
+                            taskList.add(tempTask);
+                        }else {
+                            showToast("任务发送失败");
+                        }
+                    }else if(message[0].equals("s10001")){
+                        if (MyApplication.cancelId.equals(message[1])&&message[2].equals("1")){
+                            showToast("任务撤销成功");
+                            for(int i=0;i<taskList.size();i++){
+                                if (taskList.get(i).getTaskId().equals(MyApplication.cancelId)){
+                                    taskList.remove(i);
+                                }
+                            }
+                        }else {
+                            showToast("任务撤销失败");
+                        }
+                    }
 
                 } else if (msg.what==1){
                     switchShop.performClick();
@@ -375,8 +397,8 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                         //获取时间，用于组成任务id
                         Date date=new Date();
                         String dateStr=String.format("%tT%n",date);
-                        taskList.add(new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),textStartPoint.getText().toString()
-                                ,textEndPoint.getText().toString(),MyApplication.workerId+dateStr));
+                        tempTask=new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),textStartPoint.getText().toString()
+                                ,textEndPoint.getText().toString(),MyApplication.workerId+dateStr);
                         //...To-do
                         try {
                             String message="s10000"+","+MyApplication.workerId+dateStr+","+startPoint+","+endPoint+","

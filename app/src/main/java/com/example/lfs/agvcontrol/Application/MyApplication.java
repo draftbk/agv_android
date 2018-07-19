@@ -14,6 +14,7 @@ public class MyApplication extends Application{
     public static String connectIP="192.168.0.1";
     public static String selfIP="192.168.0.1";
     public static String workerId="000000";
+    public static String cancelId="";
 
     public static void initIp(Context context){
         //1、打开Preferences，名称为setting，如果存在则打开它，否则创建新的Preferences

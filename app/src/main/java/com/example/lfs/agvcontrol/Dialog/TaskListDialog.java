@@ -95,6 +95,7 @@ public class TaskListDialog extends Dialog {
                         //...To-do
                         showToast("撤销中");
                         try {
+                            MyApplication.cancelId=taskList.get(position).getTaskId();
                             String message="s10000"+","+taskList.get(position).getTaskId();
                             message=new String(message.getBytes("UTF-8"));
                             showToast(mySocketBinder.sendMessage(message));
