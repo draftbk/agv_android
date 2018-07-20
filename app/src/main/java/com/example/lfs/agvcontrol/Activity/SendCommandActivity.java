@@ -69,6 +69,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
         init();
     }
     private void initService() {
+        getPointFromSql();
         connection=new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
@@ -111,14 +112,16 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     String[] message=msg.obj.toString().split(",");
                     //处理发送任务后的返回信息
                     if (message[0].equals("s10000")){
-                        if (tempTask.getTaskId().equals(message[1])&&message[2].equals("1")){
+                        Boolean a=tempTask.getTaskId().equals(message[1]);
+                        Boolean b=message[2].contains("1");
+                        if (tempTask.getTaskId().equals(message[1])&&message[2].contains("1")){
                             showToast("任务发送成功");
                             taskList.add(tempTask);
                         }else {
                             showToast("任务发送失败");
                         }
                     }else if(message[0].equals("s10001")){
-                        if (MyApplication.cancelId.equals(message[1])&&message[2].equals("1")){
+                        if (MyApplication.cancelId.equals(message[1])&&message[2].contains("1")){
                             showToast("任务撤销成功");
                             for(int i=0;i<taskList.size();i++){
                                 if (taskList.get(i).getTaskId().equals(MyApplication.cancelId)){
@@ -363,9 +366,6 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 }
 
                 break;
-            case R.id.menu_testSql:
-                getPointFromSql();
-                break;
             case R.id.menu_task_list:
                 taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList,mySocketBinder);
                 taskListDialog.show();
@@ -396,7 +396,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     public void onClick(DialogInterface dialog, int which) {
                         //获取时间，用于组成任务id
                         Date date=new Date();
-                        String dateStr=String.format("%tT%n",date);
+                        String dateStr=String.format("%tT%n",date).replaceAll("\r|\n", "");
                         tempTask=new Task(MyApplication.workerId,dateStr,textContent.getText().toString(),textStartPoint.getText().toString()
                                 ,textEndPoint.getText().toString(),MyApplication.workerId+dateStr);
                         //...To-do
