@@ -96,9 +96,9 @@ public class TaskListDialog extends Dialog {
                         showToast("撤销中");
                         try {
                             MyApplication.cancelId=taskList.get(position).getTaskId();
-                            String message="s10000"+","+taskList.get(position).getTaskId();
+                            String message="s10001"+","+taskList.get(position).getTaskId();
                             message=new String(message.getBytes("UTF-8"));
-                            showToast(mySocketBinder.sendMessage(message));
+                            mySocketBinder.sendMessage(message);
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
