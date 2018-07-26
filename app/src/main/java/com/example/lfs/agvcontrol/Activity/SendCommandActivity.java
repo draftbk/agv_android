@@ -136,6 +136,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 }else if (msg.what==2){
                     if (msg.obj.toString().equals("connected")){
                         showToast("连接成功");
+                        setSelfIp();
                     }else if (msg.obj.toString().equals("unconnected")){
                         showToast("连接失败，请重试");
                         switchShop.performClick();
@@ -143,6 +144,10 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 }
             }
         };
+
+    }
+
+    private void setSelfIp() {
 
     }
 
