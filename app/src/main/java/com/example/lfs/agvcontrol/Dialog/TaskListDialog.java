@@ -68,7 +68,7 @@ public class TaskListDialog extends Dialog {
         }
         setHeight();
     }
-
+    //设置dialog高度
     private void setHeight() {
         Window window = getWindow();
         DisplayMetrics displayMetrics = mContext.getResources().getDisplayMetrics();

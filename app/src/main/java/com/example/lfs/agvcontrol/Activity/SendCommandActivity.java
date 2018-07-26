@@ -112,8 +112,6 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                     String[] message=msg.obj.toString().split(",");
                     //处理发送任务后的返回信息
                     if (message[0].equals("s10000")){
-                        Boolean a=tempTask.getTaskId().equals(message[1]);
-                        Boolean b=message[2].contains("1");
                         if (tempTask.getTaskId().equals(message[1])&&message[2].contains("1")){
                             showToast("任务发送成功");
                             taskList.add(tempTask);
@@ -292,7 +290,6 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 }
                 break;
             case R.id.button_cancel:
-                finish();
                 break;
         }
     }
