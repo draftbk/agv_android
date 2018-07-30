@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -74,7 +75,7 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
                 mySocketBinder= (MyService.MySocketBinder) service;
-                mySocketBinder.startSocket(MyApplication.connectIP, 2000,handler);
+                mySocketBinder.startSocket(MyApplication.connectIP, MyApplication.connectPort,handler);
             }
 
             @Override
@@ -364,9 +365,8 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
                 if (switchShop.isChecked()){
                     showToast("先断开连接再设置ip");
                 }else {
-                    showInputDialog();
+                    showSettingDialog();
                 }
-
                 break;
             case R.id.menu_task_list:
                 taskListDialog=new TaskListDialog(SendCommandActivity.this,taskList,mySocketBinder);
@@ -425,23 +425,30 @@ public class SendCommandActivity extends AppCompatActivity implements View.OnCli
         normalDialog.show();
     }
 
-    private void showInputDialog() {
+    private void showSettingDialog() {
     /*@setView 装入一个EditView
      */
-        final EditText editText = new EditText(SendCommandActivity.this);
-        editText.setText(MyApplication.connectIP);
         AlertDialog.Builder inputDialog =
                 new AlertDialog.Builder(SendCommandActivity.this);
-        inputDialog.setTitle("输入对应IP地址").setView(editText);
+        final View dialogView = LayoutInflater.from(SendCommandActivity.this)
+                .inflate(R.layout.setting_dialog,null);
+        inputDialog.setTitle("输入对应IP地址和端口号");
+        inputDialog.setView(dialogView);
+        final EditText ipEdit=dialogView.findViewById(R.id.edit_ip);
+        ipEdit.setText(MyApplication.connectIP);
+        final EditText portEdit=dialogView.findViewById(R.id.edit_port);
+        portEdit.setText(MyApplication.connectPort+"");
         inputDialog.setPositiveButton("确定",
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String inputIP=editText.getText().toString();
+                        String inputIP=ipEdit.getText().toString();
+                        String inputPort=portEdit.getText().toString();
                         Toast.makeText(SendCommandActivity.this,
                                 inputIP,
                                 Toast.LENGTH_SHORT).show();
                         MyApplication.saveIp(SendCommandActivity.this,inputIP);
+                        MyApplication.savePort(SendCommandActivity.this,inputPort);
                     }
                 }).show();
     }
