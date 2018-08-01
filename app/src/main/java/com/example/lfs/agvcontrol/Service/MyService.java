@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 public class MyService extends Service {
     /**
      * 接收服务器消息 变量
